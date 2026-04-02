@@ -146,12 +146,13 @@ st.markdown("""
 # 2. 数据库连接与辅助函数
 # ==========================================
 DB_CONFIG = {
-    "host": st.secrets["DB_HOST"],
-    "port": int(st.secrets["DB_PORT"]),
-    "user": st.secrets["DB_USER"],
-    "password": st.secrets["DB_PASSWORD"],
-    "database": st.secrets["DB_NAME"],
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "Qyh327122-",
+    "database": "agridata_chinese"
 }
+
 def get_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
