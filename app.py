@@ -45,18 +45,19 @@ pio.templates.default = "academic"
 # ==========================================
 st.set_page_config(page_title="长期定位试验数据平台", layout="wide", initial_sidebar_state="expanded")
 
-# 自定义 CSS：去除侧边栏 radio 的项目符号，美化标题等
 st.markdown("""
 <style>
-    /* 隐藏侧边栏 radio 的默认项目符号 */
-    [data-testid="stSidebar"] ul {
-        list-style-type: none;
-        padding-left: 0;
+    /* 隐藏侧边栏 radio 按钮的圆点 */
+    [data-testid="stSidebar"] .stRadio [data-baseweb="radio"] {
+        display: none !important;
     }
-    [data-testid="stSidebar"] li {
-        margin-bottom: 0.5rem;
+    [data-testid="stSidebar"] .stRadio label {
+        padding-left: 0 !important;
+        gap: 0 !important;
     }
-    /* 侧边栏样式 */
+    [data-testid="stSidebar"] .stRadio > div[role="radiogroup"] {
+        gap: 0.5rem;
+    }
     [data-testid="stSidebar"] {
         background-color: #e8f5e9;
         padding-top: 2rem;
@@ -74,24 +75,23 @@ st.markdown("""
         padding: 8px 12px;
         border-radius: 8px;
         transition: background 0.2s;
+        cursor: pointer;
     }
     .stRadio label:hover {
         background-color: #c8e6c9;
     }
-    /* 主标题样式：左对齐，上边距减小 */
     .main-title {
         font-size: 36px;
         font-weight: 700;
         color: #1e3a2f;
         background-color: #e8f5e9;
         padding: 0.8rem 2rem;
-        margin-top: -0.5rem;   /* 往上移动一点 */
+        margin-top: -0.5rem;
         margin-bottom: 1rem;
         border-radius: 0 0 12px 12px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         text-align: left;
     }
-    /* 页面标题样式：浅绿色背景 */
     .page-title {
         background-color: #e8f5e9;
         padding: 0.6rem 1.2rem;
@@ -101,7 +101,6 @@ st.markdown("""
         font-weight: 600;
         color: #1e3a2f;
     }
-    /* 卡片样式 */
     .intro-card {
         background-color: #ffffff;
         border-radius: 12px;
@@ -170,7 +169,6 @@ except Exception as e:
     df = pd.DataFrame()
     db_status = f"数据库连接失败: {e}"
 
-# 自动识别数值型列
 numeric_cols = [c for c in df.columns if '(' in c or '指数' in c or 'pH' in c] if not df.empty else []
 
 def get_tukey_letters(tukey_result, groups):
@@ -200,7 +198,6 @@ def p_to_stars(p):
     else:
         return "ns"
 
-# 创建组学数据存储表（如果不存在）
 def init_omics_table():
     conn = get_connection()
     cursor = conn.cursor()
@@ -242,12 +239,10 @@ def login_form():
         password = st.text_input("密码", type="password")
         submitted = st.form_submit_button("登录")
         if submitted:
-            # 从 secrets 中获取用户密码
             user_pass = st.secrets.get("users", {})
             if username in user_pass and user_pass[username] == password:
                 st.session_state.authenticated = True
                 st.session_state.username = username
-                # 可选：获取角色
                 roles = st.secrets.get("roles", {})
                 st.session_state.role = roles.get(username, "viewer")
                 st.success("登录成功！")
@@ -264,20 +259,16 @@ if not st.session_state.authenticated:
     st.stop()
 
 # ==========================================
-# 5. 侧边栏导航（去除数据库状态和总数）
+# 5. 侧边栏导航
 # ==========================================
 with st.sidebar:
-    st.markdown('<div class="sidebar-title">长期定位试验数据平台</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">数据中台</div>', unsafe_allow_html=True)
     page = st.radio(
         "",
         ["项目介绍", "全景数据看板", "高阶统计与预测", "数据录入中心", "质量管理与布局", "实时监测", "系统设置"],
         label_visibility="collapsed"
     )
-    # 不再显示数据库状态和总数
 
-# ==========================================
-# 辅助函数：生成页面标题（带浅绿色背景）
-# ==========================================
 def page_title(title):
     st.markdown(f'<div class="page-title">{title}</div>', unsafe_allow_html=True)
 
@@ -285,7 +276,7 @@ def page_title(title):
 # 页面 0：项目介绍
 # ==========================================
 if page == "项目介绍":
-    st.markdown('<div class="main-title">长期联网定位试验</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">长期定位试验数据平台</div>', unsafe_allow_html=True)
     page_title("项目简介")
     st.markdown("""
     <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
@@ -293,14 +284,14 @@ if page == "项目介绍":
             <div class="intro-card">
                 <div class="intro-title">项目简介</div>
                 <div class="intro-text">
-                    本数据库依托北京市农林科学院魏丹主持的环渤海设施农业土壤连作障碍治理修复技术模式联网研究项目构建。针对环渤海地区占全国设施蔬菜面积30%以上、以日光温室和塑料大棚为主体的重要产区中普遍存在的土壤次生盐渍化、酸化、板结、根结线虫严重及连作障碍等突出问题，联合沈阳农业大学、河北省农林科学院、天津师范大学、潍坊科技学院等科研合作单位，构建了“识别障碍—明确目标—分类改良”的系统性技术路径，形成轻度障碍采用土壤调理加合理施肥、中度障碍采用耕翻加调理改良加养分管理、重度障碍采用人工基质栽培加滴灌的分级治理技术体系，并在山东、河北、天津、辽宁等省市布设多个长期定位试验点，通过定期采集0~60cm不同土层样品、监测作物全生育期长势与产量、分析土壤理化性质与生物多样性等指标，系统积累了涵盖土壤健康、水肥利用效率及蔬菜品质的多维度长期定位观测数据。本数据库旨在为设施土壤障碍演变规律研究、治理技术效果评估、区域适应性技术模式优化及政府科学决策提供坚实的数据支撑。
+                    本数据库依托北京市农林科学院植物营养与资源环境研究所主持的农业农村部环渤海设施农业土壤连作障碍治理修复技术模式联网研究项目构建。针对环渤海地区占全国设施蔬菜面积30%以上、以日光温室和塑料大棚为主体的重要产区中普遍存在的土壤次生盐渍化、酸化、板结、根结线虫严重及连作障碍等突出问题，联合沈阳农业大学、河北省农林科学院、天津师范大学、潍坊科技学院等科研合作单位，构建了“识别障碍—明确目标—分类改良”的系统性技术路径，形成轻度障碍采用土壤调理加合理施肥、中度障碍采用耕翻加调理改良加养分管理、重度障碍采用人工基质栽培加滴灌的分级治理技术体系，并在山东、河北、天津、辽宁等省市布设多个长期定位试验点，通过定期采集0~60cm不同土层样品、监测作物全生育期长势与产量、分析土壤理化性质与生物多样性等指标，系统积累了涵盖土壤健康、水肥利用效率及蔬菜品质的多维度长期定位观测数据。相关技术成果在设施蔬菜主产区累计推广20余万亩，番茄单产提高10%以上。本数据库旨在为设施土壤障碍演变规律研究、治理技术效果评估、区域适应性技术模式优化及政府科学决策提供坚实的数据支撑。
                 </div>
             </div>
         </div>
         <div style="flex: 1; min-width: 280px;">
             <div class="intro-card">
                 <div class="intro-title">参与单位与核心人员</div>
-                <div><strong>项目主持单位</strong><br>北京市农林科学院</div>
+                <div><strong>项目主持单位</strong><br>北京市农林科学院植物营养与资源环境研究所</div>
                 <div style="margin-top: 1rem;"><strong>科研合作单位</strong>
                     <ul class="unit-list">
                         <li>沈阳农业大学</li>
@@ -341,7 +332,6 @@ elif page == "全景数据看板":
 
         tab1, tab2, tab_gis = st.tabs(["数据探索图表", "指标相关性热力图", "空间分布与 GIS 插值"])
         
-        # 数据探索图表
         with tab1:
             ctrl_col, plot_col = st.columns([1, 4])
             with ctrl_col:
@@ -370,7 +360,6 @@ elif page == "全景数据看板":
                 fig.update_layout(title=f"<b>{y_axis} 随 {x_axis} 的变化</b>", paper_bgcolor='rgba(0,0,0,0)')
                 st.plotly_chart(fig, use_container_width=True)
 
-        # 相关性热力图（颜色表示相关系数，方块上显示显著性星号）
         with tab2:
             selected_corr = st.multiselect("纳入分析的指标", numeric_cols, default=numeric_cols[:8] if len(numeric_cols)>8 else numeric_cols)
             if len(selected_corr) > 1:
@@ -405,7 +394,6 @@ elif page == "全景数据看板":
             else:
                 st.info("请选择至少2个指标。")
 
-        # GIS 插值图
         with tab_gis:
             st.markdown("##### 试验点地理分布与属性空间插值")
             gis_ind = st.selectbox("选择要在地图上插值分析的指标 (基于均值)", numeric_cols, index=0)
@@ -437,7 +425,7 @@ elif page == "全景数据看板":
                 st.warning("筛选条件下的试验点少于 4 个，无法进行可靠的空间插值。")
 
 # ==========================================
-# 页面 2：高阶统计与预测（已移除高级建模选项卡）
+# 页面 2：高阶统计与预测
 # ==========================================
 elif page == "高阶统计与预测":
     page_title("高阶统计、多维分析与机器学习预测")
@@ -451,12 +439,10 @@ elif page == "高阶统计与预测":
             stat_crop = fc3.multiselect("限定作物", df['当季种植作物'].unique(), default=df['当季种植作物'].unique())
             stat_df = df[(df['测定年份'].isin(stat_year)) & (df['试验点'].isin(stat_site)) & (df['当季种植作物'].isin(stat_crop))]
 
-        # 只保留五个选项卡（移除高级建模）
         tab_anova, tab_pca, tab_rda, tab_cluster, tab_ml = st.tabs([
             "方差分析", "主成分分析", "冗余分析", "聚类分析", "随机森林预测"
         ])
         
-        # --- Tab 1: ANOVA ---
         with tab_anova:
             anova_type = st.radio("方差分析类型：", ["单因素方差分析 (One-way)", "双因素方差分析 (Two-way)"], horizontal=True)
             if anova_type == "单因素方差分析 (One-way)":
@@ -521,7 +507,6 @@ elif page == "高阶统计与预测":
                         except Exception as e:
                             st.error(f"分析失败，可能是数据缺失或单组无变异：{e}")
 
-        # --- Tab 2: PCA ---
         with tab_pca:
             pca_cols = st.multiselect("参与主成分分析的指标 (至少3个)", numeric_cols, default=numeric_cols[:6] if len(numeric_cols)>6 else numeric_cols)
             pca_group = st.selectbox("主成分分析图着色依据：", ['处理编号', '测定年份', '试验点', '当季种植作物'])
@@ -559,7 +544,6 @@ elif page == "高阶统计与预测":
                             fig_3d = px.scatter_3d(pca_df, x=scores[:,0], y=scores[:,1], z=scores[:,2], color=pca_group, title="主成分三维得分图", labels={'x': f"PC1 ({exp_var[0]*100:.2f}%)", 'y': f"PC2 ({exp_var[1]*100:.2f}%)", 'z': f"PC3 ({exp_var[2]*100:.2f}%)"})
                             st.plotly_chart(fig_3d, use_container_width=True)
 
-        # --- Tab 3: RDA ---
         with tab_rda:
             st.info("分析环境理化因子 (X) 对响应变量 (Y) 群落变异的解释程度。")
             rc1, rc2 = st.columns(2)
@@ -594,7 +578,6 @@ elif page == "高阶统计与预测":
                     fig_heat = px.imshow(corr_env_resp, x=rda_y_cols, y=rda_x_cols, text_auto=".2f", color_continuous_scale="RdBu_r", title="环境因子与响应变量相关性热力图")
                     st.plotly_chart(fig_heat, use_container_width=True)
 
-        # --- Tab 4: 聚类分析 ---
         with tab_cluster:
             clust_cols = st.multiselect("参与聚类的特征指标", numeric_cols, default=numeric_cols[:5])
             if st.button("绘制处理间层次聚类树状图", type="primary"):
@@ -616,7 +599,6 @@ elif page == "高阶统计与预测":
                     else:
                         st.error("数据不足。")
 
-        # --- Tab 5: 随机森林预测 ---
         with tab_ml:
             st.markdown("##### 基于随机森林的未来趋势预测")
             st.write("根据历史测定数据（年份、处理、作物等特征），预测未来 3 年的指标走势及不确定性区间，并输出特征重要性。")
@@ -684,13 +666,10 @@ elif page == "高阶统计与预测":
 elif page == "数据录入中心":
     page_title("数据录入中心")
     st.markdown("支持单条实时录入、实验室批量上传，以及组学数据文件上传。")
-
     entry_tab1, entry_tab2, entry_tab3 = st.tabs(["单条录入 (田间/温室)", "批量上传 (实验室Excel)", "组学数据上传"])
-
-    # 单条录入（省略详细代码，与之前相同，但将按钮移出表单）
+    
     with entry_tab1:
         st.info("提示：未测定的指标留空，系统自动以 NULL 存入数据库。自定义指标将以 JSON 格式存储。")
-        # 自定义指标添加/清空按钮（放在表单外部）
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
             if st.button("添加作物指标", key="add_crop_outside"):
@@ -824,7 +803,6 @@ elif page == "数据录入中心":
                 except Exception as e:
                     st.error(f"录入失败: {e}")
 
-    # 批量上传
     with entry_tab2:
         st.info("操作指南：在本地 Excel 中排好版，选中数据 Ctrl+C，点击下方表格的左上角空白单元格 Ctrl+V 粘贴。")
         if not df.empty:
@@ -863,7 +841,6 @@ elif page == "数据录入中心":
                 except Exception as e:
                     st.error(f"写入冲突或字段类型错误: {e}")
 
-    # 组学数据上传
     with entry_tab3:
         st.markdown("##### 组学数据上传")
         st.info("支持上传16S扩增子测序、宏基因组、代谢组学等数据文件，并记录样本元数据。")
@@ -915,8 +892,6 @@ elif page == "数据录入中心":
                         st.success(f"文件已上传成功！保存路径：{file_path}")
                     except Exception as e:
                         st.error(f"数据库记录失败: {e}")
-        
-        # 显示已上传的组学数据列表
         st.markdown("### 已上传的组学数据")
         try:
             conn = get_connection()
@@ -940,7 +915,6 @@ elif page == "质量管理与布局":
     page_title("底层数据运维、质量预警与田间布局")
     tab_quality, tab_layout, tab_raw = st.tabs(["数据质量预警诊断", "田间网格布局图", "底层数据(删改)"])
 
-    # 数据质量预警
     with tab_quality:
         st.markdown("##### 自动异常检测算法 (Isolation Forest) & 缺失值诊断")
         st.write("系统会自动扫描数据库全量数据，揪出可能是手工录入错误的离群点。")
@@ -967,7 +941,6 @@ elif page == "质量管理与布局":
                         else:
                             st.success("数据质量极佳，未发现明显数值异常。")
 
-    # 田间布局网格
     with tab_layout:
         st.markdown("##### 标准化田间小区布局可视化 (模拟随机区组设计 RCBD)")
         st.write("直观查看田间位置效应。可根据处理编号，或特定指标的热力值来给小区染色。")
@@ -1015,7 +988,6 @@ elif page == "质量管理与布局":
                 )
                 st.plotly_chart(fig_grid, use_container_width=True)
 
-    # 底层数据管理
     with tab_raw:
         st.markdown("##### 底层数据管理与删除")
         st.dataframe(df, use_container_width=True, height=300)
@@ -1040,22 +1012,17 @@ elif page == "质量管理与布局":
 elif page == "实时监测":
     page_title("实时监测 (IoT 数据采集)")
     st.info("本页面模拟自动传感器数据采集。实际应用中可替换为真实设备数据接口。")
-    
-    # 模拟生成最近24小时的数据
     now = datetime.now()
     times = [now - timedelta(hours=i) for i in range(24, 0, -1)]
-    # 模拟土壤温度、湿度、EC
     temp_data = 20 + 5 * np.sin(np.linspace(0, 2*np.pi, 24)) + np.random.randn(24) * 1
     hum_data = 60 + 10 * np.cos(np.linspace(0, 2*np.pi, 24)) + np.random.randn(24) * 2
     ec_data = 0.5 + 0.2 * np.sin(np.linspace(0, 2*np.pi, 24)) + np.random.randn(24) * 0.05
-    
     df_sensor = pd.DataFrame({
         "时间": times,
         "土壤温度 (℃)": temp_data,
         "土壤湿度 (%)": hum_data,
         "电导率 (mS/cm)": ec_data
     })
-    
     st.subheader("传感器实时曲线")
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_sensor["时间"], y=df_sensor["土壤温度 (℃)"], mode='lines+markers', name="温度"))
@@ -1069,17 +1036,12 @@ elif page == "实时监测":
         yaxis3=dict(title="电导率 (mS/cm)", overlaying="y", side="right", anchor="free", position=0.95)
     )
     st.plotly_chart(fig, use_container_width=True)
-    
-    # 模拟报警
     if df_sensor["土壤温度 (℃)"].iloc[-1] > 28:
         st.warning("⚠️ 土壤温度偏高，请注意！")
     if df_sensor["土壤湿度 (%)"].iloc[-1] < 50:
         st.warning("⚠️ 土壤湿度偏低，请及时灌溉！")
-    
     st.subheader("最新读数")
     st.dataframe(df_sensor.tail(5).sort_values("时间", ascending=False))
-    
-    # 模拟数据写入数据库的按钮（演示）
     if st.button("保存当前数据到数据库（模拟）"):
         st.success("数据已模拟写入传感器历史表（实际需要创建对应表）。")
 
@@ -1089,13 +1051,11 @@ elif page == "实时监测":
 elif page == "系统设置":
     page_title("系统设置")
     st.info("系统配置与账户管理")
-    
     st.subheader("账户管理")
     st.write(f"当前登录用户：{st.session_state.username}")
     if st.button("退出登录"):
         st.session_state.clear()
         st.rerun()
-    
     st.subheader("数据库连接测试")
     if st.button("测试数据库连接"):
         try:
@@ -1104,7 +1064,6 @@ elif page == "系统设置":
             st.success("数据库连接正常")
         except Exception as e:
             st.error(f"连接失败: {e}")
-    
     st.subheader("数据备份")
     if st.button("导出数据为 CSV"):
         if not df.empty:
@@ -1112,7 +1071,6 @@ elif page == "系统设置":
             st.download_button("下载 CSV", csv, "longterm_data.csv", "text/csv")
         else:
             st.warning("无数据可导出")
-    
     st.subheader("关于")
-    st.markdown("长期定位试验数据平台 V1.0")
-    st.markdown("© 2026 北京市农林科学院")
+    st.markdown("长期定位试验数据平台 V3.0")
+    st.markdown("© 2026 北京市农林科学院植物营养与资源环境研究所")
